@@ -38,6 +38,7 @@ Instantiation is the expensive part.
 | --------------- | ----------------------------------------------------------------------- | ------- | ---------: | -----------: |
 | `bonsai-go`     | [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go)         | v0.25.0 |     130 KB |      +0.4 MB |
 | `bonsai-python` | [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python) | v0.25.0 |     160 KB |      +0.6 MB |
+| `bonsai-groovy` | [tree-sitter-groovy](https://github.com/murtaza64/tree-sitter-groovy)   | initial |     250 KB |      +1.6 MB |
 
 ¹ stripped-binary delta (`-trimpath -ldflags='-s -w'`) over a 1.6 MB
 baseline that imports neither.
