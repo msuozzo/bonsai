@@ -32,10 +32,14 @@ ARG TREE_SITTER_TAG=v0.25.10
 ARG WASM2GO_VERSION=f9fd3b0b022e6375d7a50643127535b97aee259f
 
 # Grammar pins (vary per grammar, see bonsai-<name>/build.env).
+# GRAMMAR_SRC_SUBDIR points at the directory holding src/ when the repo
+# keeps the grammar out of its root (dialect monorepos, split grammars).
+# Leave it empty for the common src/-at-root layout.
 ARG GRAMMAR_NAME
 ARG GRAMMAR_REPO
 ARG GRAMMAR_TAG
 ARG GRAMMAR_DIR
+ARG GRAMMAR_SRC_SUBDIR=""
 ARG LANGUAGE_SYMBOL
 ARG GRAMMAR_HAS_SCANNER=1
 
@@ -122,6 +126,7 @@ ARG TREE_SITTER_TAG=v0.25.10
 ARG WASM2GO_VERSION=f9fd3b0b022e6375d7a50643127535b97aee259f
 ARG GRAMMAR_NAME
 ARG GRAMMAR_DIR
+ARG GRAMMAR_SRC_SUBDIR=""
 ARG LANGUAGE_SYMBOL
 ARG GRAMMAR_HAS_SCANNER=1
 
@@ -143,6 +148,7 @@ ENV WASI_SDK_PATH=/opt/wasi-sdk \
     TS_CORE_PATH=/sources/tree-sitter \
     TS_GRAMMAR_PATH=/sources/${GRAMMAR_DIR} \
     GRAMMAR_NAME=${GRAMMAR_NAME} \
+    GRAMMAR_SRC_SUBDIR=${GRAMMAR_SRC_SUBDIR} \
     LANGUAGE_SYMBOL=${LANGUAGE_SYMBOL} \
     GRAMMAR_HAS_SCANNER=${GRAMMAR_HAS_SCANNER} \
     OUTPUTS=bonsai-${GRAMMAR_NAME} \
@@ -159,6 +165,7 @@ COPY --chmod=0755 <<'EOF' /usr/local/bin/regen
 #
 # Per-grammar env vars (baked at build time):
 #   $GRAMMAR_NAME            "python", ...
+#   $GRAMMAR_SRC_SUBDIR      "" or the subdir holding src/ (e.g. "dialects/terraform")
 #   $LANGUAGE_SYMBOL         "tree_sitter_python", ...
 #   $GRAMMAR_HAS_SCANNER     "0" or "1" (does the grammar ship scanner.c)
 #   $OUTPUTS                 e.g. bonsai-python
@@ -180,16 +187,28 @@ while IFS=' ' read -r symbol _; do
 done < "$INPUTS/exports.txt"
 EXPORTS+=("-Wl,--export=${LANGUAGE_SYMBOL}")
 
+# Where src/ actually lives: the repo root, or a subdirectory for
+# dialect monorepos and split grammars.
+GRAMMAR_SRC="$TS_GRAMMAR_PATH${GRAMMAR_SRC_SUBDIR:+/$GRAMMAR_SRC_SUBDIR}"
+
 # Grammar sources: parser.c always, plus scanner.c if the grammar ships one.
-GRAMMAR_SRCS=("$TS_GRAMMAR_PATH/src/parser.c")
+GRAMMAR_SRCS=("$GRAMMAR_SRC/src/parser.c")
 if [[ "$GRAMMAR_HAS_SCANNER" == "1" ]]; then
-  GRAMMAR_SRCS+=("$TS_GRAMMAR_PATH/src/scanner.c")
+  GRAMMAR_SRCS+=("$GRAMMAR_SRC/src/scanner.c")
 fi
 
 # Compile tree-sitter core + grammar + shims to wasm. We link directly to
 # $WASM_PACKAGE.wasm so wasm-ld writes that name into the wasm's
 # module-name subsection. libc-gen reads it to choose its Go package
 # (ignoring -pkg when -wasm is given).
+# NOTE: grammars with very large lexer state machines (~1000+ states,
+# e.g. tree-sitter-markdown) currently can't ship through this pipeline:
+# wasm's structured control flow encodes the state dispatch as deeply
+# nested blocks, wasm2go translates those to equally nested Go blocks,
+# and go/types (vet, gopls) rejects the result with "exceeded max scope
+# depth". The fix belongs in wasm2go (flat goto-based emission past a
+# depth threshold); -fno-jump-tables does not help (the nesting comes
+# from the branch-target bodies, not the dispatch).
 clang --target=wasm32 -ffreestanding -nostdlib -std=c11 -g0 -Oz \
   -DNDEBUG -D__wasi__ \
   -Wall -Wextra -Wno-unused-parameter -Wno-unused-function \
@@ -197,7 +216,7 @@ clang --target=wasm32 -ffreestanding -nostdlib -std=c11 -g0 -Oz \
   -o "$WORK/$WASM_PACKAGE.wasm" \
   "$INPUTS/lib_min.c" "$INPUTS/stubs.c" "$WORK/libc/libc.c" \
   "${GRAMMAR_SRCS[@]}" \
-  -I"$TS_CORE_PATH/lib/include" -I"$TS_CORE_PATH/lib/src" -I"$TS_GRAMMAR_PATH/src" \
+  -I"$TS_CORE_PATH/lib/include" -I"$TS_CORE_PATH/lib/src" -I"$GRAMMAR_SRC/src" \
   -I"$INPUTS/inc" -I"$WORK/libc" \
   -mexec-model=reactor \
   -mmutable-globals -mmultivalue \
@@ -287,7 +306,10 @@ find_license() {
 }
 core_lic=$(find_license "$TS_CORE_PATH") \
   || { echo "no license file in tree-sitter core" >&2; exit 1; }
-grammar_lic=$(find_license "$TS_GRAMMAR_PATH") \
+# Subdir grammars usually inherit the repo-root license. Check the
+# grammar's own directory first, then fall back to the repo root.
+grammar_lic=$(find_license "$GRAMMAR_SRC") \
+  || grammar_lic=$(find_license "$TS_GRAMMAR_PATH") \
   || { echo "no license file in grammar $TS_GRAMMAR_PATH: cannot redistribute" >&2; exit 1; }
 cp "$core_lic" "$OUTPUTS/LICENSE.tree-sitter"
 cp "$grammar_lic" "$OUTPUTS/LICENSE.grammar"

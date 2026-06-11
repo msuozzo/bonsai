@@ -6,5 +6,6 @@ use (
  	./bonsai-groovy
 	./bonsai-go
 	./bonsai-yaml
+	./bonsai-terraform
 	./bench
 )
