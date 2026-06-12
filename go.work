@@ -11,5 +11,6 @@ use (
 	./bonsai-markdown-inline
 	./bonsai-dockerfile
 	./bonsai-bash
+	./bonsai-gotemplate
 	./bench
 )
