@@ -9,5 +9,6 @@ use (
 	./bonsai-terraform
 	./bonsai-markdown
 	./bonsai-markdown-inline
+	./bonsai-dockerfile
 	./bench
 )
