@@ -16,9 +16,10 @@ var ErrParseFailed = errors.New("bonsai: parse failed")
 // Grammar-specific construction lives in each grammar's package
 // (e.g. bonsai-python.NewParser).
 type Parser struct {
-	mod Module
-	mem *Memory
-	ts  int32 // TSParser*
+	mod    Module
+	mem    *Memory
+	ts     int32 // TSParser*
+	inject injectFn
 }
 
 // NewFromModule wires up a parser around an already-instantiated wasm
@@ -39,8 +40,20 @@ func NewFromModule(mod Module, mem *Memory, langPtr int32) *Parser {
 // Parse builds an owned Node snapshot from src. After Parse returns, no
 // wasm-side data backs the snapshot. The tree has been freed.
 //
+// If p was configured with sub-parsers via With, Parse applies them
+// automatically, returning the unified tree.
+//
 // Parse is not concurrent-safe with itself on the same Parser.
 func (p *Parser) Parse(src []byte) (*Node, error) {
+	if p.inject != nil {
+		return p.parseWithInject(src, p.inject)
+	}
+	return p.parsePlain(src)
+}
+
+// parsePlain runs one primary parse with no injection. ParseWithInject
+// calls this to produce the host tree before walking it.
+func (p *Parser) parsePlain(src []byte) (*Node, error) {
 	srcPtr := p.alloc(int32(len(src)))
 	p.writeBytes(srcPtr, src)
 

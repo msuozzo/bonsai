@@ -8,5 +8,6 @@ use (
 	./bonsai-yaml
 	./bonsai-terraform
 	./bonsai-markdown
+	./bonsai-markdown-inline
 	./bench
 )

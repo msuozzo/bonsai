@@ -152,7 +152,6 @@ ENV WASI_SDK_PATH=/opt/wasi-sdk \
     LANGUAGE_SYMBOL=${LANGUAGE_SYMBOL} \
     GRAMMAR_HAS_SCANNER=${GRAMMAR_HAS_SCANNER} \
     OUTPUTS=bonsai-${GRAMMAR_NAME} \
-    WASM_PACKAGE=bonsai${GRAMMAR_NAME} \
     PATH=/opt/wasi-sdk/bin:/opt/binaryen/bin:/usr/local/bin:${PATH}
 
 # Embed the regen entrypoint. Single-quoted EOF disables shell expansion so
@@ -172,6 +171,11 @@ COPY --chmod=0755 <<'EOF' /usr/local/bin/regen
 #   $WASM_PACKAGE            e.g. bonsaipython (Go package + wasm name)
 set -euo pipefail
 cd /work
+
+# Go package + wasm filename. Hyphens are stripped from GRAMMAR_NAME
+# so multi-word grammars like "markdown-inline" produce a valid Go
+# identifier ("bonsaimarkdowninline").
+WASM_PACKAGE=bonsai${GRAMMAR_NAME//-/}
 
 INPUTS=build
 WORK=$(mktemp -d)
