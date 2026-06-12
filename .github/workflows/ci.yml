@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+      # `go list -m` enumerates the go.work workspace, so new modules are
+      # picked up automatically. The bench module intentionally drags in
+      # the cgo-based upstream bindings it benchmarks against, and building it
+      # here keeps that comparison compiling.
+      - name: Vet and test every workspace module
+        run: |
+          set -ex
+          for dir in $(go list -m -f '{{.Dir}}'); do
+            (cd "$dir" && go vet ./... && go test ./...)
+          done

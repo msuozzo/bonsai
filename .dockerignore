@@ -1,0 +1,5 @@
+# The Dockerfile itself is the only thing the build context needs;
+# the regen entrypoint lives inline in the Dockerfile, and tree-sitter
+# sources + toolchains are fetched inside the build, not from context.
+# Mounted /work at run time is separate from the build context.
+*

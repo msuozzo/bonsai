@@ -1,0 +1,38 @@
+# Exports for the tree-sitter + grammar wasm module.
+# Lines starting with `#` are comments. The builder entrypoint skips them.
+
+# --- setup / parse / teardown ---
+ts_parser_new
+ts_parser_delete
+ts_parser_set_language
+ts_parser_parse_string
+ts_tree_delete
+ts_tree_root_node
+# The grammar's language symbol (e.g. tree_sitter_python) is added
+# per-grammar by the container entrypoint via $LANGUAGE_SYMBOL.
+
+# --- per-node inspection ---
+ts_node_type
+ts_node_start_byte
+ts_node_end_byte
+ts_node_start_point
+ts_node_end_point
+ts_node_is_named
+ts_node_is_missing
+ts_node_is_error
+ts_node_has_error
+ts_node_is_null
+ts_node_string
+
+# --- cursor traversal ---
+ts_tree_cursor_new
+ts_tree_cursor_delete
+ts_tree_cursor_current_node
+ts_tree_cursor_current_field_name
+ts_tree_cursor_goto_first_child
+ts_tree_cursor_goto_next_sibling
+ts_tree_cursor_goto_parent
+
+# --- allocator ---
+malloc
+free

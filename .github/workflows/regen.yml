@@ -1,0 +1,152 @@
+# Verifies that every bonsai-<lang> module's generated code is exactly
+# reproducible in CI: rebuild the pinned builder image, rerun codegen, and
+# fail if any tracked file changed or any new file appeared. Nothing is
+# ever pushed back to the branch. This is a pure validation gate.
+#
+# Fan-out: the `discover` job lists bonsai-*/build.env and feeds the
+# result to a matrix strategy, so each language regenerates in its own
+# parallel job. Adding a language requires no workflow change.
+name: regen
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    # Generation is hermetic: outputs depend only on these paths (plus
+    # the remote artifacts pinned by tag/SHA inside build.env and
+    # Dockerfile.builder). PRs touching nothing here skip the matrix.
+    # NOTE: if you make `regen ok` a required status check, delete this
+    # paths filter, since a skipped workflow leaves required checks pending.
+    paths:
+      - Dockerfile.builder
+      - 'build/**'
+      - 'bonsai-*/**'
+      - .github/workflows/regen.yml
+  schedule:
+    # Weekly canary for bit-rot on the unpinned edges (floating base-image
+    # tags, release-asset availability, moved grammar tags).
+    - cron: '14 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  discover:
+    name: discover languages
+    runs-on: ubuntu-latest
+    outputs:
+      langs: ${{ steps.list.outputs.langs }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: List grammar modules
+        id: list
+        run: |
+          langs=$(for f in bonsai-*/build.env; do
+            [ -e "$f" ] || continue
+            d=${f%/build.env}
+            printf '%s\n' "${d#bonsai-}"
+          done | jq -cnR '[inputs]')
+          echo "discovered: $langs"
+          test "$langs" != '[]'
+          echo "langs=$langs" >>"$GITHUB_OUTPUT"
+
+  regen:
+    name: regen (${{ matrix.lang }})
+    needs: discover
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false # report every language, not just the first failure
+      matrix:
+        lang: ${{ fromJSON(needs.discover.outputs.langs) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Read grammar pins
+        id: pins
+        run: |
+          {
+            echo 'args<<PINS_EOF'
+            grep -E '^[A-Z_]+=' "bonsai-${{ matrix.lang }}/build.env"
+            echo 'PINS_EOF'
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Build builder image (layer-cached)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.builder
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: bonsai-builder-${{ matrix.lang }}:dev
+          build-args: ${{ steps.pins.outputs.args }}
+          # Per-language cache scope, the documented pattern for matrix
+          # builds. Toolchain layers are duplicated across scopes, so at
+          # roughly >8 languages this will brush the 10 GB repo cache
+          # quota. Switch then to a registry cache (ghcr.io) refreshed
+          # from main.
+          cache-from: type=gha,scope=builder-${{ matrix.lang }}
+          cache-to: type=gha,mode=max,scope=builder-${{ matrix.lang }}
+
+      # The image was just loaded under the tag regen.sh looks for, so the
+      # script's build-if-missing check short-circuits and it goes straight
+      # to `docker run`, the same path developers take locally.
+      - name: Regenerate
+        run: build/regen.sh '${{ matrix.lang }}'
+
+      - name: Verify nothing changed
+        run: |
+          git add --intent-to-add --all # make brand-new files visible to git diff
+          if git diff --quiet; then
+            echo "bonsai-${{ matrix.lang }}: generated code reproduces byte-for-byte"
+            exit 0
+          fi
+          {
+            echo "### \`bonsai-${{ matrix.lang }}\` regenerated differently in CI"
+            echo
+            echo 'Regenerate locally and commit the result:'
+            echo
+            echo '```sh'
+            echo "go generate ./bonsai-${{ matrix.lang }}"
+            echo '```'
+            echo
+            echo '```'
+            git diff --stat
+            echo '```'
+          } >>"$GITHUB_STEP_SUMMARY"
+          git status --porcelain
+          git diff --stat
+          git diff >"regen-${{ matrix.lang }}.diff"
+          echo "::error::bonsai-${{ matrix.lang }} is stale or non-reproducible. Run 'go generate ./bonsai-${{ matrix.lang }}' and commit the result"
+          exit 1
+
+      - name: Upload diff artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regen-${{ matrix.lang }}.diff
+          path: regen-${{ matrix.lang }}.diff
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # Single aggregate status for branch protection: require "regen ok"
+  # instead of N per-language checks whose names change as languages are
+  # added.
+  regen-ok:
+    name: regen ok
+    needs: [discover, regen]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: All languages reproduced
+        run: |
+          test '${{ needs.discover.result }}' = success
+          test '${{ needs.regen.result }}' = success
