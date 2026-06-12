@@ -10,5 +10,6 @@ use (
 	./bonsai-markdown
 	./bonsai-markdown-inline
 	./bonsai-dockerfile
+	./bonsai-bash
 	./bench
 )

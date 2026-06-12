@@ -36,6 +36,7 @@ Instantiation is the expensive part.
 
 | module              | grammar                                                                                               | pinned  | module zip | binary cost¹ |
 | ------------------- | ----------------------------------------------------------------------------------------------------- | ------- | ---------: | -----------: |
+| `bonsai-bash`       | [tree-sitter-bash](https://github.com/tree-sitter/tree-sitter-bash)                                   | v0.25.1 |     390 KB |      +2.5 MB |
 | `bonsai-dockerfile` | [tree-sitter-dockerfile](https://github.com/camdencheek/tree-sitter-dockerfile)                       | v0.2.0  |     100 KB |      +0.3 MB |
 | `bonsai-go`         | [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go)                                       | v0.25.0 |     130 KB |      +0.4 MB |
 | `bonsai-groovy`     | [tree-sitter-groovy](https://github.com/murtaza64/tree-sitter-groovy)                                 | initial |     250 KB |      +1.6 MB |
