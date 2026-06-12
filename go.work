@@ -7,5 +7,6 @@ use (
 	./bonsai-go
 	./bonsai-yaml
 	./bonsai-terraform
+	./bonsai-markdown
 	./bench
 )
