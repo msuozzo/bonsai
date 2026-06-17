@@ -42,4 +42,6 @@ version bumps:
 
 2. Commit, point `main` at it, and push.
 
-3. Tag the root and every language module at `main` and push.
+3. `./release.sh` tags the root and every language module at `main`
+   (`-n` previews). The version is derived from the go.mods bumped in
+   step 1, so it takes no argument.
