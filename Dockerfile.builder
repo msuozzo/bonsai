@@ -273,6 +273,15 @@ fi
   echo "// in 64 KiB WebAssembly pages. Memory passed to New must already be sized"
   echo "// to at least InitialPages * 65536 bytes before the call."
   echo "const InitialPages = $init_pages"
+  echo
+  echo "// GrammarVersion is the upstream grammar ref (tag or branch) this"
+  echo "// module's parser was generated from. The exact commit is in the"
+  echo "// header above."
+  echo "const GrammarVersion = \"$(cat /sources/grammar.version)\""
+  echo
+  echo "// TreeSitterVersion is the tree-sitter runtime ref whose compiled"
+  echo "// form this module embeds."
+  echo "const TreeSitterVersion = \"$(cat /sources/tree-sitter.version)\""
 } > "$OUTPUTS/meta_gen.go"
 
 # Upstream license notices. The generated module is a derivative of the

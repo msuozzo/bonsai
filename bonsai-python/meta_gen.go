@@ -13,3 +13,12 @@ package bonsaipython
 // in 64 KiB WebAssembly pages. Memory passed to New must already be sized
 // to at least InitialPages * 65536 bytes before the call.
 const InitialPages = 8
+
+// GrammarVersion is the upstream grammar ref (tag or branch) this
+// module's parser was generated from. The exact commit is in the
+// header above.
+const GrammarVersion = "v0.25.0"
+
+// TreeSitterVersion is the tree-sitter runtime ref whose compiled
+// form this module embeds.
+const TreeSitterVersion = "v0.25.10"
