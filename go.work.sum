@@ -1,2 +1,1 @@
-github.com/mattn/go-pointer v0.0.1/go.mod h1:2zXcozF6qYGgmsG+SeTZz3oAbFLdD3OWqnUbNvJZAlc=
-github.com/tree-sitter/go-tree-sitter v0.25.0/go.mod h1:r77ig7BikoZhHrrsjAnv8RqGti5rtSyvDHPzgTPsUuU=
+github.com/msuozzo/bonsai/bonsai-markdown-inline v0.2.0/go.mod h1:aA/UoOBSckC3TRJEPg90XaioXcOCv/8GXAxR0AkHrEE=
