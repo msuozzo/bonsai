@@ -53,33 +53,14 @@ grammar accounting for roughly half.
 
 ## Versioning
 
-Language modules encode the upstream grammar version in the tag's minor
-number and reserve the patch for re-releases (toolchain or runtime bumps
-at the same grammar):
+All modules, the runtime root and every language alike, release in
+lockstep: one `vX.Y.Z` tag per module per release, with every
+cross-module `require` pinned to exactly that version. The version
+number carries no grammar information. Each language module records its
+upstream pin in `build.env` and as generated constants
+(`GrammarVersion`, `TreeSitterVersion`).
 
-```
-bonsai-<lang>/v0.<encoded>.<respin>
-encoded = major·10000 + minor·100 + patch  (of the upstream grammar tag)
-
-tree-sitter-python v0.25.0          → bonsai-python/v0.2500.0
-  …rebuilt with a newer toolchain   → bonsai-python/v0.2500.1
-tree-sitter-python v0.25.1          → bonsai-python/v0.2501.0
-```
-
-(Mirroring upstream tags verbatim was rejected: a re-release at the same
-grammar version would have to squat on upstream's next patch number.)
-Grammars without a semver upstream tag use `encoded = 0` until upstream cuts a
-release. The encoding exists for ordering, not parsing: the exact upstream pin
-is always in the module's `build.env` and `meta_gen.go` header.
-
-The root module (`github.com/msuozzo/bonsai`, the runtime) versions
-independently as plain SemVer. Each language module pins the root version
-it was generated against. A runtime-ABI change means regenerating and
-re-releasing every language (CI enforces the regeneration half).
-
-Releases are cut by tagging the root, replacing each language go.mod's
-`replace` directive with a `require` of that tag, then tagging each
-language module. No versions are tagged yet.
+Release policy and mechanics: [RELEASING.md](RELEASING.md).
 
 ## Regenerating
 
