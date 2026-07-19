@@ -36,17 +36,17 @@ Instantiation is the expensive part.
 
 | module              | grammar                                                                                               | pinned  | module zip | binary cost¹ |
 | ------------------- | ----------------------------------------------------------------------------------------------------- | ------- | ---------: | -----------: |
-| `bonsai-bash`       | [tree-sitter-bash](https://github.com/tree-sitter/tree-sitter-bash)                                   | v0.25.1 |     390 KB |      +2.5 MB |
-| `bonsai-dockerfile` | [tree-sitter-dockerfile](https://github.com/camdencheek/tree-sitter-dockerfile)                       | v0.2.0  |     100 KB |      +0.3 MB |
-| `bonsai-go`         | [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go)                                       | v0.25.0 |     130 KB |      +0.4 MB |
-| `bonsai-gotemplate` | [tree-sitter-go-template](https://github.com/ngalaiko/tree-sitter-go-template)                        | master  |     100 KB |      +0.3 MB |
-| `bonsai-groovy`     | [tree-sitter-groovy](https://github.com/murtaza64/tree-sitter-groovy)                                 | initial |     250 KB |      +1.6 MB |
-| `bonsai-markdown`   | [tree-sitter-markdown](https://github.com/tree-sitter-grammars/tree-sitter-markdown) (block + inline) | v0.5.3  |     430 KB |      +2.2 MB |
-| `bonsai-python`     | [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python)                               | v0.25.0 |     160 KB |      +0.6 MB |
-| `bonsai-terraform`  | [tree-sitter-hcl](https://github.com/tree-sitter-grammars/tree-sitter-hcl) (terraform dialect)        | v1.2.0  |     110 KB |      +0.3 MB |
-| `bonsai-yaml`       | [tree-sitter-yaml](https://github.com/tree-sitter-grammars/tree-sitter-yaml)                          | v0.7.2  |     130 KB |      +0.5 MB |
+| `bonsai-bash`       | [tree-sitter-bash](https://github.com/tree-sitter/tree-sitter-bash)                                   | v0.25.1 |     360 KB |      +3.0 MB |
+| `bonsai-dockerfile` | [tree-sitter-dockerfile](https://github.com/camdencheek/tree-sitter-dockerfile)                       | v0.2.0  |     100 KB |      +0.7 MB |
+| `bonsai-go`         | [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go)                                       | v0.25.0 |     120 KB |      +0.8 MB |
+| `bonsai-gotemplate` | [tree-sitter-go-template](https://github.com/ngalaiko/tree-sitter-go-template)                        | master  |     100 KB |      +0.7 MB |
+| `bonsai-groovy`     | [tree-sitter-groovy](https://github.com/murtaza64/tree-sitter-groovy)                                 | initial |     210 KB |      +1.9 MB |
+| `bonsai-markdown`   | [tree-sitter-markdown](https://github.com/tree-sitter-grammars/tree-sitter-markdown) (block + inline) | v0.5.3  |     380 KB |      +3.1 MB |
+| `bonsai-python`     | [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python)                               | v0.25.0 |     150 KB |      +1.1 MB |
+| `bonsai-terraform`  | [tree-sitter-hcl](https://github.com/tree-sitter-grammars/tree-sitter-hcl) (terraform dialect)        | v1.2.0  |     110 KB |      +0.7 MB |
+| `bonsai-yaml`       | [tree-sitter-yaml](https://github.com/tree-sitter-grammars/tree-sitter-yaml)                          | v0.7.2  |     130 KB |      +0.9 MB |
 
-¹ stripped-binary delta (`-trimpath -ldflags='-s -w'`) over a 1.6 mb
+¹ stripped-binary delta (`-trimpath -ldflags='-s -w'`) over a 1.7 mb
 baseline that imports no grammar module. the `bonsai-markdown` row covers
 the combined block + inline parsers via `NewFullParser`, each individual
 grammar accounting for roughly half.
