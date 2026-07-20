@@ -30,18 +30,6 @@ ARG TREE_SITTER_TAG=v0.25.10
 # pass (ncruces/wasm2go#42). See the NOTE in the regen entrypoint.
 ARG WASM2GO_VERSION=v0.4.11
 
-# Grammar pins (vary per grammar, see bonsai-<name>/build.env).
-# GRAMMAR_SRC_SUBDIR points at the directory holding src/ when the repo
-# keeps the grammar out of its root (dialect monorepos, split grammars).
-# Leave it empty for the common src/-at-root layout.
-ARG GRAMMAR_NAME
-ARG GRAMMAR_REPO
-ARG GRAMMAR_TAG
-ARG GRAMMAR_DIR
-ARG GRAMMAR_SRC_SUBDIR=""
-ARG LANGUAGE_SYMBOL
-ARG GRAMMAR_HAS_SCANNER=1
-
 # Build wasm2go and libc-gen as static binaries so the final image
 # doesn't need a Go toolchain.
 RUN set -eux; \
@@ -82,21 +70,39 @@ RUN set -eux; \
     find /opt/binaryen/bin -type f \
          ! -name wasm-opt ! -name wasm-dis -delete
 
-# Sources: tree-sitter core + the grammar named in GRAMMAR_*. The grammar
-# is cloned into /sources/$GRAMMAR_DIR. Provenance is recorded for the
-# generated meta_gen.go header.
+# Sources: tree-sitter core, shared by every grammar image.
 RUN set -eux; \
     git clone --depth 1 --branch "${TREE_SITTER_TAG}" \
         https://github.com/tree-sitter/tree-sitter.git /sources/tree-sitter; \
+    (cd /sources/tree-sitter && git rev-parse HEAD > /sources/tree-sitter.sha); \
+    echo "${TREE_SITTER_TAG}" > /sources/tree-sitter.version; \
+    rm -rf /sources/tree-sitter/.git
+
+# Grammar pins (vary per grammar, see bonsai-<name>/build.env). Declared
+# as late as possible: a changed ARG value invalidates the RUN cache for
+# every instruction after its declaration, used or not, so keeping these
+# below the toolchain layers lets all grammar images share those layers.
+# GRAMMAR_SRC_SUBDIR points at the directory holding src/ when the repo
+# keeps the grammar out of its root (dialect monorepos, split grammars).
+# Leave it empty for the common src/-at-root layout.
+ARG GRAMMAR_NAME
+ARG GRAMMAR_REPO
+ARG GRAMMAR_TAG
+ARG GRAMMAR_DIR
+ARG GRAMMAR_SRC_SUBDIR=""
+ARG LANGUAGE_SYMBOL
+ARG GRAMMAR_HAS_SCANNER=1
+
+# The grammar named in GRAMMAR_*, cloned into /sources/$GRAMMAR_DIR.
+# Provenance is recorded for the generated meta_gen.go header.
+RUN set -eux; \
     git clone --depth 1 --branch "${GRAMMAR_TAG}" \
         "${GRAMMAR_REPO}" "/sources/${GRAMMAR_DIR}"; \
-    (cd /sources/tree-sitter            && git rev-parse HEAD > /sources/tree-sitter.sha); \
-    (cd "/sources/${GRAMMAR_DIR}"       && git rev-parse HEAD > /sources/grammar.sha); \
-    echo "${TREE_SITTER_TAG}"  > /sources/tree-sitter.version; \
-    echo "${GRAMMAR_TAG}"      > /sources/grammar.version; \
-    echo "${GRAMMAR_DIR}"      > /sources/grammar.dir; \
-    echo "${GRAMMAR_REPO}"     > /sources/grammar.repo; \
-    rm -rf /sources/tree-sitter/.git "/sources/${GRAMMAR_DIR}/.git"
+    (cd "/sources/${GRAMMAR_DIR}" && git rev-parse HEAD > /sources/grammar.sha); \
+    echo "${GRAMMAR_TAG}"  > /sources/grammar.version; \
+    echo "${GRAMMAR_DIR}"  > /sources/grammar.dir; \
+    echo "${GRAMMAR_REPO}" > /sources/grammar.repo; \
+    rm -rf "/sources/${GRAMMAR_DIR}/.git"
 
 
 # ---------- Stage 2: minimal runtime ----------
