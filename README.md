@@ -41,6 +41,8 @@ Instantiation is the expensive part.
 | `bonsai-go`         | [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go)                                       | v0.25.0 |     120 KB |      +0.8 MB |
 | `bonsai-gotemplate` | [tree-sitter-go-template](https://github.com/ngalaiko/tree-sitter-go-template)                        | master  |     100 KB |      +0.7 MB |
 | `bonsai-groovy`     | [tree-sitter-groovy](https://github.com/murtaza64/tree-sitter-groovy)                                 | initial |     210 KB |      +1.9 MB |
+| `bonsai-java`       | [tree-sitter-java](https://github.com/tree-sitter/tree-sitter-java)                                   | v0.23.5 |     130 KB |      +1.0 MB |
+| `bonsai-kotlin`     | [tree-sitter-kotlin](https://github.com/tree-sitter-grammars/tree-sitter-kotlin)                      | v1.1.0  |     460 KB |      +5.0 MB |
 | `bonsai-markdown`   | [tree-sitter-markdown](https://github.com/tree-sitter-grammars/tree-sitter-markdown) (block + inline) | v0.5.3  |     380 KB |      +3.1 MB |
 | `bonsai-python`     | [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python)                               | v0.25.0 |     150 KB |      +1.1 MB |
 | `bonsai-terraform`  | [tree-sitter-hcl](https://github.com/tree-sitter-grammars/tree-sitter-hcl) (terraform dialect)        | v1.2.0  |     110 KB |      +0.7 MB |
