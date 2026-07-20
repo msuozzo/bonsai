@@ -7,7 +7,10 @@ use (
 	./bonsai-c
 	./bonsai-go
 	./bonsai-java
+	./bonsai-javascript
 	./bonsai-kotlin
+	./bonsai-tsx
+	./bonsai-typescript
 	./bonsai-rust
 	./bonsai-ruby
 	./bonsai-yaml
