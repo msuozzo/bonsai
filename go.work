@@ -4,9 +4,11 @@ use (
 	.
 	./bonsai-python
  	./bonsai-groovy
+	./bonsai-c
 	./bonsai-go
 	./bonsai-java
 	./bonsai-kotlin
+	./bonsai-rust
 	./bonsai-yaml
 	./bonsai-terraform
 	./bonsai-markdown
