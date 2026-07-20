@@ -5,6 +5,8 @@ use (
 	./bonsai-python
  	./bonsai-groovy
 	./bonsai-go
+	./bonsai-java
+	./bonsai-kotlin
 	./bonsai-yaml
 	./bonsai-terraform
 	./bonsai-markdown
