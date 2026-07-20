@@ -26,12 +26,9 @@ ARG WASI_SDK_SHA256=0ba8b5bfaeb2adf3f29bab5841d76cf5318ab8e1642ea195f88baba1abd4
 ARG BINARYEN_VERSION=130
 ARG BINARYEN_SHA256=0a18362361ad05465118cd8eeb72edaeec89de6894bc283576ef4e07aa3babcc
 ARG TREE_SITTER_TAG=v0.25.10
-# wasm2go is fetched from WASM2GO_REPO at the exact WASM2GO_VERSION commit.
-# Current: upstream main. The br_table->switch pass (ncruces/wasm2go#42)
-# landed after the v0.4.10 release, so we pin main by commit until the
-# next tagged release, then revert to `go install @version` (see below).
-ARG WASM2GO_REPO=https://github.com/ncruces/wasm2go.git
-ARG WASM2GO_VERSION=aef6301ba923f61e2c8b31493ae1c3a92890cb58
+# v0.4.11 is the first tagged release containing the br_table->switch
+# pass (ncruces/wasm2go#42). See the NOTE in the regen entrypoint.
+ARG WASM2GO_VERSION=v0.4.11
 
 # Grammar pins (vary per grammar, see bonsai-<name>/build.env).
 # GRAMMAR_SRC_SUBDIR points at the directory holding src/ when the repo
@@ -47,24 +44,12 @@ ARG GRAMMAR_HAS_SCANNER=1
 
 # Build wasm2go and libc-gen as static binaries so the final image
 # doesn't need a Go toolchain.
-#
-# We fetch at the exact WASM2GO_VERSION commit instead of `go install`
-# because no tagged release contains ncruces/wasm2go#42 yet. Once one
-# does, revert to:
-#
-#   RUN CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' \
-#           github.com/ncruces/wasm2go@${WASM2GO_VERSION} \
-#    && CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' \
-#           github.com/ncruces/wasm2go/libc-gen@${WASM2GO_VERSION}
 RUN set -eux; \
-    mkdir /tmp/wasm2go; \
-    cd /tmp/wasm2go; \
-    git init -q; \
-    git remote add origin "${WASM2GO_REPO}"; \
-    git fetch -q --depth=1 origin "${WASM2GO_VERSION}"; \
-    git checkout -q FETCH_HEAD; \
-    CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' . ./libc-gen; \
-    rm -rf /tmp/wasm2go /root/.cache/go-build
+    CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' \
+        "github.com/ncruces/wasm2go@${WASM2GO_VERSION}"; \
+    CGO_ENABLED=0 go install -trimpath -ldflags='-s -w' \
+        "github.com/ncruces/wasm2go/libc-gen@${WASM2GO_VERSION}"; \
+    rm -rf /root/.cache/go-build /go/pkg/mod
 
 # wasi-sdk: download, verify SHA, extract, prune.
 RUN set -eux; \
@@ -124,7 +109,7 @@ FROM --platform=linux/amd64 debian:bookworm-slim
 ARG WASI_SDK_VERSION=33.0
 ARG BINARYEN_VERSION=130
 ARG TREE_SITTER_TAG=v0.25.10
-ARG WASM2GO_VERSION=aef6301ba923f61e2c8b31493ae1c3a92890cb58
+ARG WASM2GO_VERSION=v0.4.11
 ARG GRAMMAR_NAME
 ARG GRAMMAR_DIR
 ARG GRAMMAR_SRC_SUBDIR=""
@@ -211,7 +196,7 @@ fi
 # blocks. Translated literally, they exceed go/parser's nesting limit
 # ("exceeded max scope depth", breaking vet and go test). wasm2go's
 # br_table->switch pass (ncruces/wasm2go#42) collapses them, which is
-# why WASM2GO_VERSION must be a commit that contains it.
+# why WASM2GO_VERSION must be a version that contains it (>= v0.4.11).
 clang --target=wasm32 -ffreestanding -nostdlib -std=c11 -g0 -Oz \
   -DNDEBUG -D__wasi__ \
   -Wall -Wextra -Wno-unused-parameter -Wno-unused-function \
