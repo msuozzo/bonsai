@@ -88,13 +88,14 @@ jobs:
           push: false
           tags: bonsai-builder-${{ matrix.lang }}:dev
           build-args: ${{ steps.pins.outputs.args }}
-          # Per-language cache scope, the documented pattern for matrix
-          # builds. Toolchain layers are duplicated across scopes, so at
-          # roughly >8 languages this will brush the 10 GB repo cache
-          # quota. Switch then to a registry cache (ghcr.io) refreshed
-          # from main.
-          cache-from: type=gha,scope=builder-${{ matrix.lang }}
-          cache-to: type=gha,mode=max,scope=builder-${{ matrix.lang }}
+          # One shared scope: builder images are layer-identical down to
+          # the per-grammar clone, so this stores one toolchain copy
+          # instead of one per language. Concurrent matrix writes race
+          # benignly (blobs dedupe, an index-race loser rebuilds its
+          # few-second grammar layers next run), and ignore-error keeps
+          # cache-export hiccups from failing an otherwise-green job.
+          cache-from: type=gha,scope=builder
+          cache-to: type=gha,mode=max,scope=builder,ignore-error=true
 
       # The image was just loaded under the tag regen.sh looks for, so the
       # script's build-if-missing check short-circuits and it goes straight
