@@ -22,7 +22,13 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.work
-          cache-dependency-path: '**/go.sum'
+          cache-dependency-path: "**/go.sum"
+      # XXX: Remove sibling deps so resolution doesn't break when releasing.
+      # Why this works: Workspace always builds all sibling modules which are
+      # then available for import. Local compilation will skip attempting to resolve
+      # them remotely and access the local versions instead.
+      - name: Strip cross-module requires
+        run: sed -i '/^module/!{/github.com\/msuozzo\/bonsai/d;}' bonsai-*/go.mod bench/go.mod
       # `go list -m` enumerates the go.work workspace, so new modules are
       # picked up automatically. The bench module intentionally drags in
       # the cgo-based upstream bindings it benchmarks against, and building it
