@@ -21,7 +21,7 @@ type injectFn func(n *Node) *Parser
 // applies it automatically:
 //
 //	root, err := blockParser.parseWithInject(src, func(n *bonsai.Node) *bonsai.Parser {
-//		if n.Type == "inline" {
+//		if n.Kind == "inline" {
 //			return inlineParser
 //		}
 //		return nil
@@ -122,7 +122,7 @@ type SubParser struct {
 // grammar):
 //
 //	full := bonsaimarkdown.NewParser().With(bonsai.SubParser{
-//		Match:  func(n *bonsai.Node) bool { return n.Type == "inline" },
+//		Match:  func(n *bonsai.Node) bool { return n.Kind == "inline" },
 //		Parser: bonsaimarkdowninline.NewParser(),
 //	})
 //	root, _ := full.Parse(src) // tree contains block + inline nodes

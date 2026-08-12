@@ -5,8 +5,8 @@
 package bonsairust
 
 // KindX constants name every named, visible node type this grammar can
-// produce as Node.Type. Values are the raw tree-sitter kind strings, so
-// they work anywhere a node type string is expected, like Node.Find.
+// produce as Node.Kind. Values are the raw tree-sitter kind strings, so
+// they work anywhere a node kind string is expected, like Node.Find.
 // Anonymous tokens (keywords, punctuation) and supertypes have no
 // constants.
 const (

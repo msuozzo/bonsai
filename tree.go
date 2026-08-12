@@ -13,7 +13,7 @@ type Point struct {
 // dependency on WASM memory: after Parse returns, the tree has been deleted
 // and the Go GC owns every Node.
 type Node struct {
-	Type       string
+	Kind       string // grammar node kind, e.g. "function_definition"
 	Named      bool
 	Field      string // field name in parent ("" if unnamed slot)
 	IsError    bool   // this node is the ERROR sentinel
@@ -45,13 +45,13 @@ func (n *Node) ChildByField(name string) *Node {
 	return nil
 }
 
-// Find yields, in preorder, every descendant of n whose Type == typ.
+// Find yields, in preorder, every descendant of n whose Kind == kind.
 // n itself is included if it matches.
-func (n *Node) Find(typ string) iter.Seq[*Node] {
+func (n *Node) Find(kind string) iter.Seq[*Node] {
 	return func(yield func(*Node) bool) {
 		var walk func(*Node) bool
 		walk = func(c *Node) bool {
-			if c.Type == typ && !yield(c) {
+			if c.Kind == kind && !yield(c) {
 				return false
 			}
 			for _, ch := range c.Children {

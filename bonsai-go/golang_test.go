@@ -18,7 +18,7 @@ func sexp(n *bonsaigo.Node) string {
 	if n.Field != "" {
 		fmt.Fprintf(&b, "%s: ", n.Field)
 	}
-	fmt.Fprintf(&b, "(%s", n.Type)
+	fmt.Fprintf(&b, "(%s", n.Kind)
 	for _, c := range n.Children {
 		s := sexp(c)
 		if s != "" {
@@ -41,8 +41,8 @@ func TestSmoke(t *testing.T) {
 	if root.HasError() {
 		t.Fatalf("unexpected parse error: %s", sexp(root))
 	}
-	if root.Type != "source_file" {
-		t.Errorf("root type = %q, want %q", root.Type, "source_file")
+	if root.Kind != "source_file" {
+		t.Errorf("root kind = %q, want %q", root.Kind, "source_file")
 	}
 	if got, want := uint32(len(src)), root.EndByte; got != want {
 		t.Errorf("root end byte = %d, want %d", root.EndByte, got)

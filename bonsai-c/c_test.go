@@ -22,7 +22,7 @@ func sexp(n *bonsaic.Node) string {
 	if n.Field != "" {
 		fmt.Fprintf(&b, "%s: ", n.Field)
 	}
-	fmt.Fprintf(&b, "(%s", n.Type)
+	fmt.Fprintf(&b, "(%s", n.Kind)
 	for _, c := range n.Children {
 		s := sexp(c)
 		if s != "" {
@@ -43,8 +43,8 @@ func TestSmoke(t *testing.T) {
 		t.Fatalf("Parse: %v", err)
 	}
 
-	if root.Type != "translation_unit" {
-		t.Fatalf("root type = %q, want %q", root.Type, "translation_unit")
+	if root.Kind != "translation_unit" {
+		t.Fatalf("root kind = %q, want %q", root.Kind, "translation_unit")
 	}
 	if got, want := uint32(len(src)), root.EndByte; got != want {
 		t.Fatalf("root end byte = %d, want %d", root.EndByte, got)
@@ -78,7 +78,7 @@ func TestFunctionDefinition(t *testing.T) {
 	// (function_definition declarator: (function_declarator
 	//   declarator: (identifier) parameters: (parameter_list ...))).
 	fd := fn.ChildByField("declarator")
-	if fd == nil || fd.Type != "function_declarator" {
+	if fd == nil || fd.Kind != "function_declarator" {
 		t.Fatalf("function_definition has no function_declarator: %s", sexp(fn))
 	}
 	name := fd.ChildByField("declarator")
