@@ -43,8 +43,8 @@ func TestSmoke(t *testing.T) {
 		t.Fatalf("Parse: %v", err)
 	}
 
-	if root.Type != "module" {
-		t.Fatalf("root type = %q, want %q", root.Type, "module")
+	if root.Type != bonsaipython.KindModule {
+		t.Fatalf("root type = %q, want %q", root.Type, bonsaipython.KindModule)
 	}
 	if got, want := uint32(len(src)), root.EndByte; got != want {
 		t.Fatalf("root end byte = %d, want %d", root.EndByte, got)
@@ -66,7 +66,7 @@ func TestAssignmentFields(t *testing.T) {
 	}
 
 	var assign *bonsaipython.Node
-	for n := range root.Find("assignment") {
+	for n := range root.Find(bonsaipython.KindAssignment) {
 		assign = n
 		break
 	}
@@ -74,8 +74,8 @@ func TestAssignmentFields(t *testing.T) {
 		t.Fatalf("no assignment found in: %s", sexp(root))
 	}
 
-	left := assign.ChildByField("left")
-	right := assign.ChildByField("right")
+	left := assign.ChildByField(bonsaipython.FieldLeft)
+	right := assign.ChildByField(bonsaipython.FieldRight)
 	if left == nil || right == nil {
 		t.Fatalf("missing left/right field on assignment: %s", sexp(assign))
 	}
@@ -97,7 +97,7 @@ func TestFunctionDef(t *testing.T) {
 	}
 
 	var fn *bonsaipython.Node
-	for n := range root.Find("function_definition") {
+	for n := range root.Find(bonsaipython.KindFunctionDefinition) {
 		fn = n
 		break
 	}
@@ -105,7 +105,7 @@ func TestFunctionDef(t *testing.T) {
 		t.Fatalf("no function_definition in: %s", sexp(root))
 	}
 
-	name := fn.ChildByField("name")
+	name := fn.ChildByField(bonsaipython.FieldName)
 	if name == nil {
 		t.Fatalf("function_definition has no name field: %s", sexp(fn))
 	}
@@ -113,13 +113,13 @@ func TestFunctionDef(t *testing.T) {
 		t.Errorf("name = %q, want %q", got, "f")
 	}
 
-	params := fn.ChildByField("parameters")
+	params := fn.ChildByField(bonsaipython.FieldParameters)
 	if params == nil {
 		t.Fatalf("function_definition has no parameters field")
 	}
 
 	var names []string
-	for n := range params.Find("identifier") {
+	for n := range params.Find(bonsaipython.KindIdentifier) {
 		names = append(names, string(n.Text(src)))
 	}
 	if got, want := strings.Join(names, ","), "x,y"; got != want {
