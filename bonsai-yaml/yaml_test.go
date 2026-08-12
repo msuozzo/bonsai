@@ -18,7 +18,7 @@ func sexp(n *bonsaiyaml.Node) string {
 	if n.Field != "" {
 		fmt.Fprintf(&b, "%s: ", n.Field)
 	}
-	fmt.Fprintf(&b, "(%s", n.Type)
+	fmt.Fprintf(&b, "(%s", n.Kind)
 	for _, c := range n.Children {
 		s := sexp(c)
 		if s != "" {
@@ -41,8 +41,8 @@ func TestSmoke(t *testing.T) {
 	if root.HasError() {
 		t.Fatalf("unexpected parse error: %s", sexp(root))
 	}
-	if root.Type != "stream" {
-		t.Errorf("root type = %q, want %q", root.Type, "stream")
+	if root.Kind != "stream" {
+		t.Errorf("root kind = %q, want %q", root.Kind, "stream")
 	}
 	t.Logf("snapshot: %s", sexp(root))
 }

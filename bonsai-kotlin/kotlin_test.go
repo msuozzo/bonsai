@@ -22,7 +22,7 @@ func sexp(n *bonsaikotlin.Node) string {
 	if n.Field != "" {
 		fmt.Fprintf(&b, "%s: ", n.Field)
 	}
-	fmt.Fprintf(&b, "(%s", n.Type)
+	fmt.Fprintf(&b, "(%s", n.Kind)
 	for _, c := range n.Children {
 		s := sexp(c)
 		if s != "" {
@@ -43,8 +43,8 @@ func TestSmoke(t *testing.T) {
 		t.Fatalf("Parse: %v", err)
 	}
 
-	if root.Type != "source_file" {
-		t.Fatalf("root type = %q, want %q", root.Type, "source_file")
+	if root.Kind != "source_file" {
+		t.Fatalf("root kind = %q, want %q", root.Kind, "source_file")
 	}
 	if got, want := uint32(len(src)), root.EndByte; got != want {
 		t.Fatalf("root end byte = %d, want %d", root.EndByte, got)
@@ -87,7 +87,7 @@ func TestFunctionDeclaration(t *testing.T) {
 	var params []string
 	for pn := range fn.Find("parameter") {
 		for _, c := range pn.Children {
-			if c.Type == "identifier" {
+			if c.Kind == "identifier" {
 				params = append(params, string(c.Text(src)))
 				break
 			}

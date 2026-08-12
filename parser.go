@@ -81,7 +81,7 @@ func (p *Parser) build(s scratch) *Node {
 	p.mod.Xts_tree_cursor_current_node(s.node, s.cursor)
 
 	n := &Node{
-		Type:      p.readCStr(p.mod.Xts_node_type(s.node)),
+		Kind:      p.readCStr(p.mod.Xts_node_type(s.node)),
 		Named:     p.mod.Xts_node_is_named(s.node) != 0,
 		Field:     p.readCStr(p.mod.Xts_tree_cursor_current_field_name(s.cursor)),
 		IsError:   p.mod.Xts_node_is_error(s.node) != 0,

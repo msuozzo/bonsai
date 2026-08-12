@@ -40,7 +40,7 @@ func NewParser() *Parser {
 // back into one unified tree.
 func NewFullParser() *Parser {
 	return NewParser().With(bonsai.SubParser{
-		Match:  func(n *bonsai.Node) bool { return n.Named && n.Type == "inline" },
+		Match:  func(n *bonsai.Node) bool { return n.Named && n.Kind == "inline" },
 		Parser: bonsaimarkdowninline.NewParser(),
 	})
 }

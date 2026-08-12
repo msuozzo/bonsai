@@ -22,7 +22,7 @@ func sexp(n *bonsaijava.Node) string {
 	if n.Field != "" {
 		fmt.Fprintf(&b, "%s: ", n.Field)
 	}
-	fmt.Fprintf(&b, "(%s", n.Type)
+	fmt.Fprintf(&b, "(%s", n.Kind)
 	for _, c := range n.Children {
 		s := sexp(c)
 		if s != "" {
@@ -43,8 +43,8 @@ func TestSmoke(t *testing.T) {
 		t.Fatalf("Parse: %v", err)
 	}
 
-	if root.Type != "program" {
-		t.Fatalf("root type = %q, want %q", root.Type, "program")
+	if root.Kind != "program" {
+		t.Fatalf("root kind = %q, want %q", root.Kind, "program")
 	}
 	if got, want := uint32(len(src)), root.EndByte; got != want {
 		t.Fatalf("root end byte = %d, want %d", root.EndByte, got)
