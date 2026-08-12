@@ -1,19 +1,19 @@
 #!/bin/sh
-# Tag the release declared by main's go.mods. This ONLY creates git tags on
-# GitHub -- it does not commit, edit go.mods, or move bookmarks.
+# Tag the release declared by main's go.mods. This ONLY creates git tags and
+# will not commit, edit go.mods, or move bookmarks.
 #
-# The version is not an input: release prep (RELEASING.md) writes it into
-# every language go.mod, so this script derives it from main and syncs
-# GitHub's tags to match. Rerunning is always safe: a tag that already
-# exists at main's commit is skipped, so a fully tagged release is a no-op
-# and a partial failure is resumed by rerunning.
+# The version must be updated in all go.mod files, committed, and pushed to
+# main before running (see RELEASING.md). Rerunning the script is safe since
+# pushed tags are skipped, partial failures are resumed from where they
+# encountered errors, and tags will never be moved (`jj tag set` refuses).
 #
-#   ./release.sh -n          # dry run: show what would be tagged
+#   ./release.sh -n          # dry run: validate + show what would be tagged
 #   ./release.sh             # tag whatever main's go.mods declare
 #   ./release.sh vX.Y.Z      # same, but fail unless main declares vX.Y.Z
 #
 # Validations, all before any tag is created:
 #   - main is immutable (pushed, not a rewritable WIP)
+#   - main matches main@REMOTE after a fetch, so we tag what the remote has
 #   - every cross-module require at main agrees on one version
 #   - an existing tag at any other commit fails the release
 #
@@ -23,7 +23,6 @@
 set -eu
 cd "$(dirname "$0")"
 
-REPO="msuozzo/bonsai"
 BASE="github.com/msuozzo/bonsai"
 
 die() {
@@ -45,8 +44,17 @@ base_require() {
 	sed -n "s|.*$BASE \(v[^[:space:]]*\).*|\1|p" | head -1
 }
 
-# Fail fast on auth/repo problems, before any per-tag work.
-gh api "repos/$REPO" --silent >/dev/null || die "gh cannot reach $REPO (auth?)"
+# Fail fast on a jj that cannot push tags (stabilized in 0.44.0).
+jj tag set --help >/dev/null 2>&1 || die "need jj (>=v0.44.0)"
+
+# Find and release to remote matching $BASE (first match wins).
+REMOTE=$(jj git remote list | tr ':' '/' \
+	| grep -E "$BASE(\.git)?/?$" \
+	| head -1 | cut -d' ' -f1)
+[ -n "$REMOTE" ] || die "no remote has a $BASE url"
+
+# Ensure we're synced to the upstream before fetching main, tags.
+jj git fetch --quiet --remote "$REMOTE" || die "fetch from $REMOTE failed"
 
 SHA=$(jj log --no-graph -r main -T commit_id 2>/dev/null) || SHA=
 [ -n "$SHA" ] || die "no 'main' bookmark"
@@ -54,6 +62,10 @@ SHA=$(jj log --no-graph -r main -T commit_id 2>/dev/null) || SHA=
 # main must be immutable: pushed, and not a WIP we might still rewrite.
 [ -z "$(jj log --no-graph -r 'main & mutable()' -T commit_id 2>/dev/null)" ] \
 	|| die "main ($SHA) is mutable -- commit + push it before tagging"
+
+# Identify remote's main as target to tag.
+RSHA=$(jj log --no-graph -r "main@$REMOTE" -T commit_id 2>/dev/null) || RSHA=
+[ "$RSHA" = "$SHA" ] || die "main ($SHA) != main@$REMOTE (${RSHA:-absent}) -- push main first"
 
 # Module list from main, defined as all those with build.env files.
 MODS=$(jj file list -r main | sed -n 's|^\(bonsai-[^/]*\)/build\.env$|\1|p')
@@ -69,9 +81,7 @@ printf '%s\n' "$VER" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' \
 	|| die "could not find a vX.Y.Z version from $FIRST/go.mod at main (got '$VER')"
 [ -z "$WANT" ] || [ "$WANT" = "$VER" ] || die "main's go.mods declare $VER, not $WANT"
 
-# A version sitting in the working copy but not on main is the most likely
-# way to run this too early. Point at the missing step instead of silently
-# re-syncing the old release.
+# Reject a bump version in the working copy but not on main.
 WCVER=$(base_require <"$FIRST/go.mod" 2>/dev/null) || WCVER=
 if [ -n "$WCVER" ] && [ "$WCVER" != "$VER" ]; then
 	echo "warning: working-copy go.mods differ from main ($WCVER != $VER)" >&2
@@ -97,37 +107,30 @@ for m in $MODS; do
 	TAGS="$TAGS $m/$VER"
 done
 
-# Dry run exits early.
-if [ "$DRY" = 1 ]; then
-	echo "would tag $VER at $SHA:"
-	for t in $TAGS; do
-		echo "  $t"
-	done
-	exit 0
-fi
-
-# Actual run creates all tags it can, logging errors on failure.
-FAIL=0
-CREATED=0
+# Partition into missing tags and tags already at main.
+# An existing tag at any other commit fails the release.
+[ "$DRY" = 0 ] || echo "would tag $VER at $SHA:"
+MISSING=
 for t in $TAGS; do
-	EXISTING=$(gh api "repos/$REPO/git/ref/tags/$t" --jq .object.sha 2>/dev/null) || EXISTING=
-	if [ "$EXISTING" = "$SHA" ]; then
-		echo "exists  $t"
-	elif [ -n "$EXISTING" ]; then
-		echo "release: $t already exists at $EXISTING, not $SHA" >&2
-		FAIL=1
-	elif gh api "repos/$REPO/git/refs" -f ref="refs/tags/$t" -f sha="$SHA" --silent; then
-		echo "tagged  $t"
-		CREATED=$((CREATED + 1))
+	AT=$(jj tag list "exact:$t" -T 'if(remote, "", normal_target.commit_id())' 2>/dev/null) || AT=
+	if [ -z "$AT" ]; then
+		MISSING="$MISSING $t"
+		[ "$DRY" = 0 ] || echo "  $t"
+	elif [ "$AT" != "$SHA" ]; then
+		die "$t already exists at $AT, not $SHA"
 	else
-		echo "release: could not tag $t" >&2
-		FAIL=1
+		[ "$DRY" = 0 ] || echo "  $t (exists)"
 	fi
 done
+[ "$DRY" = 0 ] || exit 0
 
-[ "$FAIL" = 0 ] || die "$VER is INCOMPLETE -- fix the errors above and rerun"
-if [ "$CREATED" = 0 ]; then
-	echo "Nothing to do: $VER is already fully tagged at $SHA."
+# Create the missing tags in one batch (jj refuses existing tags).
+[ -z "$MISSING" ] || jj tag set $MISSING -r main
+jj git push --remote "$REMOTE" $(printf ' -t exact:%s' $TAGS) \
+	|| die "$VER is INCOMPLETE -- fix the errors above and rerun"
+
+if [ -z "$MISSING" ]; then
+	echo "Nothing to do: $VER was already fully tagged at $SHA (push synced)."
 else
 	echo "Released $VER at $SHA."
 fi
