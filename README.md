@@ -12,20 +12,24 @@ go get github.com/msuozzo/bonsai/bonsai-python
 ```
 
 ```go
-import bonsaipython "github.com/msuozzo/bonsai/bonsai-python"
+import py "github.com/msuozzo/bonsai/bonsai-python"
 
 src, _ := os.ReadFile("example.py")
 
-p := bonsaipython.NewParser()
+p := py.NewParser()
 root, err := p.Parse(src)
 if err != nil {
 	return err
 }
-for fn := range root.Find("function_definition") {
-	name := fn.ChildByField("name")
+for fn := range root.Find(py.KindFunctionDefinition) {
+	name := fn.ChildByField(py.FieldName)
 	fmt.Printf("def %s @ line %d\n", name.Text(src), fn.StartPoint.Row+1)
 }
 ```
+
+Each module generates `Kind*` and `Field*` constants from its grammar,
+one per named node type and one per field name. They are plain strings,
+so raw literals like `root.Find("function_definition")` work the same.
 
 Import only the languages you need: every cost (download, compile,
 binary size) scales with the modules you actually import. A `Parser` is

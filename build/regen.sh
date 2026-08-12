@@ -3,7 +3,7 @@
 # bonsai-<lang>/build.env, builds the per-grammar builder image (see
 # Dockerfile.builder) if it isn't already present, then runs it against
 # the repo to rewrite bonsai-<lang>/{module_gen.go,module_gen.dat,
-# libc_gen.go,meta_gen.go}.
+# libc_gen.go,meta_gen.go,kinds_gen.go}.
 #
 # Usage:
 #   build/regen.sh <lang>               # ensure image exists, regenerate
