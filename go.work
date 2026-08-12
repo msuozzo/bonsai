@@ -2,23 +2,23 @@ go 1.25.0
 
 use (
 	.
-	./bonsai-python
- 	./bonsai-groovy
+	./bench
+	./bonsai-bash
 	./bonsai-c
+	./bonsai-dockerfile
 	./bonsai-go
+	./bonsai-gotemplate
+	./bonsai-groovy
 	./bonsai-java
 	./bonsai-javascript
 	./bonsai-kotlin
-	./bonsai-tsx
-	./bonsai-typescript
-	./bonsai-rust
-	./bonsai-ruby
-	./bonsai-yaml
-	./bonsai-terraform
 	./bonsai-markdown
 	./bonsai-markdown-inline
-	./bonsai-dockerfile
-	./bonsai-bash
-	./bonsai-gotemplate
-	./bench
+	./bonsai-python
+	./bonsai-ruby
+	./bonsai-rust
+	./bonsai-terraform
+	./bonsai-tsx
+	./bonsai-typescript
+	./bonsai-yaml
 )
