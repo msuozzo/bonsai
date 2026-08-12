@@ -15,7 +15,7 @@ require (
 
 require (
 	github.com/mattn/go-pointer v0.0.1 // indirect
-	github.com/msuozzo/bonsai v0.0.0 // indirect
+	github.com/msuozzo/bonsai v0.3.0 // indirect
 )
 
 replace (
