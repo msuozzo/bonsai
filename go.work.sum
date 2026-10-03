@@ -2,3 +2,4 @@ github.com/msuozzo/bonsai/bonsai-markdown-inline v0.2.0/go.mod h1:aA/UoOBSckC3TR
 github.com/msuozzo/bonsai/bonsai-markdown-inline v0.2.1/go.mod h1:Ouq8fceQ6RstYzoEHTDZh748yrcdfVE9D6aNZAwrvyQ=
 github.com/msuozzo/bonsai/bonsai-markdown-inline v0.3.0/go.mod h1:j35iGBaFpD+ZF2v/tASGHN4snjIiDOsa7S5qLitVfas=
 github.com/msuozzo/bonsai/bonsai-markdown-inline v0.4.0/go.mod h1:hjhOJSQylIlHEXT0+ns7ocHl9+qw1LgO9mits9Bt/Fc=
+github.com/msuozzo/bonsai/bonsai-markdown-inline v0.4.1/go.mod h1:CsSSFIFNVv4fNzctL4XOZTbG/64k+Pr7wUTdQWEfI1M=

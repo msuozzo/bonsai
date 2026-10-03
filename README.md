@@ -65,6 +65,16 @@ row covers the combined block + inline parsers (both module zips, and
 `NewFullParser` for the binary), each individual grammar accounting for
 roughly half.
 
+## Performance
+
+Against tree-sitter's C library through the official cgo binding
+([go-tree-sitter](https://github.com/tree-sitter/go-tree-sitter)), bonsai
+performs comparably on heavier workloads that read most of the parsed tree,
+like syntax highlighting. Lighter work like pure syntax checking favors cgo,
+because bonsai always builds the tree as Go objects, but for typical input
+files the difference is a fraction of a millisecond. Example workloads live
+in [`bench/`](bench).
+
 ## Versioning
 
 All modules, the runtime root and every language alike, release in
