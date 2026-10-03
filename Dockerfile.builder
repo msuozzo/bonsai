@@ -26,9 +26,7 @@ ARG WASI_SDK_SHA256=0ba8b5bfaeb2adf3f29bab5841d76cf5318ab8e1642ea195f88baba1abd4
 ARG BINARYEN_VERSION=130
 ARG BINARYEN_SHA256=0a18362361ad05465118cd8eeb72edaeec89de6894bc283576ef4e07aa3babcc
 ARG TREE_SITTER_TAG=v0.25.10
-# v0.4.11 is the first tagged release containing the br_table->switch
-# pass (ncruces/wasm2go#42). See the NOTE in the regen entrypoint.
-ARG WASM2GO_VERSION=v0.4.11
+ARG WASM2GO_VERSION=v0.4.16
 
 # Build wasm2go and libc-gen as static binaries so the final image
 # doesn't need a Go toolchain.
@@ -121,7 +119,7 @@ RUN apt-get update \
 ARG WASI_SDK_VERSION=33.0
 ARG BINARYEN_VERSION=130
 ARG TREE_SITTER_TAG=v0.25.10
-ARG WASM2GO_VERSION=v0.4.11
+ARG WASM2GO_VERSION=v0.4.16
 ARG GRAMMAR_NAME
 ARG GRAMMAR_DIR
 ARG GRAMMAR_SRC_SUBDIR=""

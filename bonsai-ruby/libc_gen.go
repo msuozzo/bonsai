@@ -4,7 +4,7 @@ package bonsairuby
 
 import "bytes"
 
-func (m *Module) _memchr(s, c, n int32) int32 {
+func (m *Module) _memchr(s int32, c int32, n int32) int32 {
 	b := (*m.memory)[uint32(s):]
 	if uint(len(b)) > uint(uint32(n)) {
 		b = b[:uint32(n)]
@@ -16,13 +16,16 @@ func (m *Module) _memchr(s, c, n int32) int32 {
 }
 
 func (m *Module) _memcmp(s1, s2, n int32) int32 {
+	if s1 == s2 {
+		return 0
+	}
 	e1, e2 := s1+n, s2+n
 	b1 := (*m.memory)[uint32(s1):uint32(e1)]
 	b2 := (*m.memory)[uint32(s2):uint32(e2)]
 	return int32(bytes.Compare(b1, b2))
 }
 
-func (m *Module) _strchr(s, c int32) int32 {
+func (m *Module) _strchr(s int32, c int32) int32 {
 	s = m._strchrnul(s, c)
 	if (*m.memory)[uint32(s)] == byte(c) {
 		return s
@@ -30,7 +33,7 @@ func (m *Module) _strchr(s, c int32) int32 {
 	return 0
 }
 
-func (m *Module) _strchrnul(s, c int32) int32 {
+func (m *Module) _strchrnul(s int32, c int32) int32 {
 	b := (*m.memory)[uint32(s):]
 	b = b[:bytes.IndexByte(b, 0)]
 	sz := len(b)

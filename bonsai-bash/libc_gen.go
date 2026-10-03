@@ -5,6 +5,9 @@ package bonsaibash
 import "bytes"
 
 func (m *Module) _memcmp(s1, s2, n int32) int32 {
+	if s1 == s2 {
+		return 0
+	}
 	e1, e2 := s1+n, s2+n
 	b1 := (*m.memory)[uint32(s1):uint32(e1)]
 	b2 := (*m.memory)[uint32(s2):uint32(e2)]
@@ -12,10 +15,13 @@ func (m *Module) _memcmp(s1, s2, n int32) int32 {
 }
 
 func (m *Module) _strcmp(s1, s2 int32) int32 {
+	if s1 == s2 {
+		return 0
+	}
 	b1 := (*m.memory)[uint32(s1):]
 	b2 := (*m.memory)[uint32(s2):]
 	sz := min(len(b1), len(b2))
-	if i := bytes.IndexByte(b1[:sz], 0); i >= 0 {
+	if i := bytes.IndexByte(b2[:sz], 0); i >= 0 {
 		sz = i + 1
 	}
 	return int32(bytes.Compare(b1[:sz], b2[:sz]))
