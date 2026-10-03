@@ -2,7 +2,7 @@
 //
 // Inputs (baked into image):
 //   tree-sitter            v0.25.10  (commit da6fe9beb4f7f67beb75914ca8e0d48ae48d6406)
-//   tree-sitter-go-template master  (commit aa71f63de226c5592dfbfc1f29949522d7c95fac)
+//   tree-sitter-go-template master  (commit 06b2fd2ac32a7be71cdcf925eeeb868a68e2acde)
 //
 // Grammar source:     https://github.com/ngalaiko/tree-sitter-go-template.git
 // Toolchain versions: see image labels (docker inspect).

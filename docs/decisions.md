@@ -12,10 +12,10 @@ level-to-slightly-slower (+2-6%) than the scalar version.
 
 ## `-Oz`, not `-O3`
 
-`-O3` performs ~15% better (benchstat n=10 on bonsai v0.4.0's bonsai-go,
+`-O3` performs ~15% better (benchstat n=10 on bonsai-go with wasm2go v0.4.16,
 all fixture sizes), but roughly doubles the generated code size and, as a
 consequence, the consumer cost to compile the generated package on first
-install. bonsai-go's `module_gen.go` grows 537 KB -> 934 KB, compile time 0.75
-s -> 1.6 s, compiler max RSS 270 MB -> 450 MB. That cost scales with grammar size
+install. bonsai-go's `module_gen.go` grows 528 KB -> 920 KB, compile time 0.49
+s -> 1.05 s, compiler max RSS 251 MB -> 410 MB. That cost scales with grammar size
 (bash's generated file is ~3.6× go's), so we keep `-Oz` and its cheap installs.
 Revisit if parse speed is a bottleneck.
